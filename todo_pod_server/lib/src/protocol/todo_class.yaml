@@ -1,0 +1,5 @@
+class: Todo # クラス名
+table: todo # データベースのテーブル名
+fields:
+  name: String
+  isDone: bool

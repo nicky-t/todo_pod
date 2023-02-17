@@ -9,8 +9,10 @@ library protocol; // ignore_for_file: no_leading_underscores_for_library_prefixe
 
 import 'package:serverpod/serverpod.dart' as _i1;
 import 'example.dart' as _i2;
-import 'package:serverpod/protocol.dart' as _i3;
-export 'example.dart'; // ignore_for_file: equal_keys_in_map
+import 'todo_class.dart' as _i3;
+import 'package:serverpod/protocol.dart' as _i4;
+export 'example.dart';
+export 'todo_class.dart'; // ignore_for_file: equal_keys_in_map
 
 class Protocol extends _i1.SerializationManagerServer {
   Protocol._();
@@ -33,11 +35,17 @@ class Protocol extends _i1.SerializationManagerServer {
     if (t == _i2.Example) {
       return _i2.Example.fromJson(data, this) as T;
     }
+    if (t == _i3.Todo) {
+      return _i3.Todo.fromJson(data, this) as T;
+    }
     if (t == _i1.getType<_i2.Example?>()) {
       return (data != null ? _i2.Example.fromJson(data, this) : null) as T;
     }
+    if (t == _i1.getType<_i3.Todo?>()) {
+      return (data != null ? _i3.Todo.fromJson(data, this) : null) as T;
+    }
     try {
-      return _i3.Protocol().deserialize<T>(data, t);
+      return _i4.Protocol().deserialize<T>(data, t);
     } catch (_) {}
     return super.deserialize<T>(data, t);
   }
@@ -47,6 +55,9 @@ class Protocol extends _i1.SerializationManagerServer {
     if (data is _i2.Example) {
       return 'Example';
     }
+    if (data is _i3.Todo) {
+      return 'Todo';
+    }
     return super.getClassNameForObject(data);
   }
 
@@ -55,16 +66,23 @@ class Protocol extends _i1.SerializationManagerServer {
     if (data['className'] == 'Example') {
       return deserialize<_i2.Example>(data['data']);
     }
+    if (data['className'] == 'Todo') {
+      return deserialize<_i3.Todo>(data['data']);
+    }
     return super.deserializeByClassName(data);
   }
 
   @override
   _i1.Table? getTableForType(Type t) {
     {
-      var table = _i3.Protocol().getTableForType(t);
+      var table = _i4.Protocol().getTableForType(t);
       if (table != null) {
         return table;
       }
+    }
+    switch (t) {
+      case _i3.Todo:
+        return _i3.Todo.t;
     }
     return null;
   }
