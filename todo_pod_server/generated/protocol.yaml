@@ -1,2 +1,7 @@
 example:
   - hello:
+todo:
+  - getAllTodos:
+  - addTodo:
+  - updateTodo:
+  - deleteTodo:
