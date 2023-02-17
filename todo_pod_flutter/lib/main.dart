@@ -34,17 +34,72 @@ class MyHomePage extends StatefulWidget {
 }
 
 class MyHomePageState extends State<MyHomePage> {
-  String? _resultMessage;
-  String? _errorMessage;
+  String _errorMessage = '';
+  List<Todo> todos = [];
+  int? selectedTodoId;
 
   final _textEditingController = TextEditingController();
 
-  void _callHello() async {
+  @override
+  void initState() {
+    super.initState();
+    getAllTodo();
+  }
+
+  Future<void> getAllTodo() async {
     try {
-      final result = await client.example.hello(_textEditingController.text);
+      final res = await client.todo.getAllTodos();
       setState(() {
-        _resultMessage = result;
+        todos = [...res];
       });
+    } catch (e) {
+      setState(() {
+        _errorMessage = '$e';
+      });
+    }
+  }
+
+  Future<void> addTask() async {
+    try {
+      await client.todo.addTodo(
+        todo: Todo(
+          name: _textEditingController.text,
+          isDone: false,
+        ),
+      );
+
+      await getAllTodo();
+    } catch (e) {
+      setState(() {
+        _errorMessage = '$e';
+      });
+    }
+  }
+
+  Future<void> updateTodo(Todo todo) async {
+    try {
+      await client.todo.updateTodo(
+        todo: Todo(
+          id: todo.id,
+          name: todo.name,
+          isDone: !todo.isDone,
+        ),
+      );
+      await getAllTodo();
+    } catch (e) {
+      setState(() {
+        _errorMessage = '$e';
+      });
+    }
+  }
+
+  Future<void> deleteTodo(int id) async {
+    try {
+      await client.todo.deleteTodo(id: id);
+      setState(() {
+        selectedTodoId = null;
+      });
+      await getAllTodo();
     } catch (e) {
       setState(() {
         _errorMessage = '$e';
@@ -71,53 +126,64 @@ class MyHomePageState extends State<MyHomePage> {
                 ),
               ),
             ),
+            if (_errorMessage.isNotEmpty)
+              Text(
+                _errorMessage,
+                style: const TextStyle(color: Colors.red),
+              ),
             Padding(
               padding: const EdgeInsets.only(bottom: 16.0),
               child: ElevatedButton(
-                onPressed: _callHello,
-                child: const Text('Send to Server'),
+                onPressed: addTask,
+                child: const Text('新しいタスクを作成'),
               ),
             ),
-            _ResultDisplay(
-              resultMessage: _resultMessage,
-              errorMessage: _errorMessage,
+            Flexible(
+              child: ListView.builder(
+                itemCount: todos.length,
+                itemBuilder: (context, i) {
+                  final todo = todos[i];
+                  return Padding(
+                    padding: const EdgeInsets.only(bottom: 8),
+                    child: ListTile(
+                      onTap: () {
+                        setState(() {
+                          selectedTodoId = todo.id;
+                        });
+                      },
+                      title: Text(todo.name),
+                      tileColor: Colors.white70,
+                      selected: todo.id == selectedTodoId,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        side: const BorderSide(color: Colors.black12),
+                      ),
+                      trailing: IconButton(
+                        onPressed: () {
+                          updateTodo(todo);
+                        },
+                        icon: Icon(
+                          Icons.check_box,
+                          color: todo.isDone ? Colors.blue : Colors.grey,
+                        ),
+                      ),
+                    ),
+                  );
+                },
+              ),
             ),
+            if (selectedTodoId != null)
+              Padding(
+                padding: const EdgeInsets.only(bottom: 16.0),
+                child: ElevatedButton(
+                  onPressed: () {
+                    deleteTodo(selectedTodoId!);
+                  },
+                  child: const Text('タスクの削除'),
+                ),
+              ),
           ],
         ),
-      ),
-    );
-  }
-}
-
-class _ResultDisplay extends StatelessWidget {
-  final String? resultMessage;
-  final String? errorMessage;
-
-  const _ResultDisplay({
-    this.resultMessage,
-    this.errorMessage,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    String text;
-    Color backgroundColor;
-    if (errorMessage != null) {
-      backgroundColor = Colors.red[300]!;
-      text = errorMessage!;
-    } else if (resultMessage != null) {
-      backgroundColor = Colors.green[300]!;
-      text = resultMessage!;
-    } else {
-      backgroundColor = Colors.grey[300]!;
-      text = 'No server response yet.';
-    }
-
-    return Container(
-      height: 50,
-      color: backgroundColor,
-      child: Center(
-        child: Text(text),
       ),
     );
   }
